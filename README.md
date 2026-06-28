@@ -92,19 +92,20 @@ flowchart TD
 
 Ferramentas que precisam estar instaladas na sua máquina:
 
-- [kind](https://kind.sigs.k8s.io/) — Sobe um cluster
-  Kubernetes local dentro do Docker: `kind --version`
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) — Cliente de linha de
-  comando do Kubernetes: `kubectl version --client`
-- [Docker](https://docs.docker.com/get-docker/) — Runtime usado pelo kind (e
-  para construir imagens locais, quando necessário): `docker --version`
+- [kind](https://kind.sigs.k8s.io/): sobe um cluster Kubernetes local dentro
+  do Docker. Confira a instalação com `kind --version`.
+- [kubectl](https://kubernetes.io/docs/tasks/tools/): o cliente de linha de
+  comando do Kubernetes. Confira com `kubectl version --client`.
+- [Docker](https://docs.docker.com/get-docker/): o runtime que o kind usa (e
+  que também serve para construir imagens locais quando você precisar).
+  Confira com `docker --version`.
 
 O cluster e o Ingress Controller são criados na seção
 [Preparando o cluster](#preparando-o-cluster).
 
 ## Preparando o cluster
 
-Sobe o ambiente uma única vez — serve para qualquer lab deste repositório.
+Você sobe o ambiente uma única vez e ele serve para qualquer lab deste repositório.
 
 A configuração do cluster fica em [`kind-config.yaml`](kind-config.yaml), que
 expõe as portas 80/443 no host e marca o node com `ingress-ready=true`
@@ -186,7 +187,7 @@ lab1/
 
 ### Subir tudo de uma vez
 
-> Pressupõe o cluster e o Ingress já no ar — veja [Preparando o cluster](#preparando-o-cluster).
+> Pressupõe o cluster e o Ingress já no ar (veja [Preparando o cluster](#preparando-o-cluster)).
 
 ```bash
 kubectl apply -f lab1/namespace.yaml
@@ -197,16 +198,28 @@ kubectl get all -n todolist-grupo-05
 
 ### Como subir o ambiente
 
-> Quer entender cada peça? Siga os passos abaixo, na ordem — cada um depende do
-> anterior. (Já rodou o atalho acima? Então é só ler para entender o que foi criado.)
+> Quer entender cada objeto? Siga os passos abaixo na ordem, porque cada um
+> depende do anterior. (Já rodou tudo de uma vez? Então é só ler para entender o
+> que foi criado.)
 >
 > 💡 **Ponto de partida com `--dry-run=client`:** em cada passo, o comando
-> `kubectl create ... --dry-run=client -o yaml` **não cria nada no cluster** —
-> apenas imprime um YAML de exemplo. Redirecione para um arquivo
-> (`> lab1/arquivo.yaml`), ajuste o que faltar e só então crie o recurso com
-> `kubectl apply -f`. Assim você ganha um esqueleto sem ferir a regra do lab:
-> a criação continua **declarativa**. (O PVC é a exceção — não há
-> `kubectl create pvc`, então ele é escrito à mão.)
+> `kubectl create ... --dry-run=client -o yaml` **não cria nada no cluster**.
+> Ele apenas imprime um YAML de exemplo. A ideia é redirecionar para um arquivo
+> (`> lab1/arquivo.yaml`), ajustar o que faltar e só então criar o recurso com
+> `kubectl apply -f`. Assim você ganha um esqueleto sem ferir a regra do lab,
+> já que a criação continua **declarativa**.
+>
+> O que o dry-run gera é o **mínimo que o Kubernetes exige**. Tudo que você
+> acrescenta por cima é opcional (labels, annotations) ou exigência do *lab*,
+> não do Kubernetes. O quanto você edita depois varia bastante de um objeto
+> para outro:
+>
+> - **Quase pronto** (só revisar): Namespace, ConfigMap, Secret, Service, Ingress.
+> - **Só o esqueleto** (o essencial você adiciona depois): **Deployment**
+>   (`envFrom`, volume em `/data`, porta `5000`) e **CronJob** (command do `curl`,
+>   `secretKeyRef`).
+> - **Sem `create`** (escrito 100% à mão): **PVC**, porque não existe
+>   `kubectl create pvc`.
 
 #### 1. Namespace
 
@@ -305,7 +318,7 @@ Solicita um volume de `500Mi` (`ReadWriteOnce`) ao cluster.
 O Kubernetes provisiona o PersistentVolume e o vincula ao PVC.
 O Deployment monta o volume em `/data`, onde fica o banco `todos.db`.
 
-> No kind, o PVC só fica `Bound` quando um Pod o monta (passo 5) — até lá ele
+> No kind, o PVC só fica `Bound` quando um Pod o monta (passo 5). Até lá ele
 > aparece como `Pending`, o que é normal. Veja [Troubleshooting](#troubleshooting).
 
 ```mermaid
@@ -321,8 +334,9 @@ flowchart LR
     PVC -->|volumeMount /data| Pods
 ```
 
-> Não há `kubectl create pvc` — escreva `lab1/pvc.yaml` à mão com `kind: PersistentVolumeClaim`,
-> `accessModes: [ReadWriteOnce]` e `resources.requests.storage: 500Mi`.
+> Não há `kubectl create pvc`, então escreva `lab1/pvc.yaml` à mão com
+> `kind: PersistentVolumeClaim`, `accessModes: [ReadWriteOnce]` e
+> `resources.requests.storage: 500Mi`.
 
 ```bash
 kubectl apply -f lab1/pvc.yaml
@@ -492,18 +506,18 @@ Coisas que costumam aparecer ao rodar este lab no `kind`:
   porta 80 ou 443 no host (IIS no Windows, outro servidor web, ou outro cluster
   kind). Libere a porta, ou troque o `hostPort` no
   [`kind-config.yaml`](kind-config.yaml) para portas altas (ex. `8080` e `8443`)
-  e recrie o cluster — o acesso passa a ser `http://localhost:8080`.
+  e recrie o cluster. Nesse caso o acesso passa a ser `http://localhost:8080`.
 
 - **PVC fica `Pending`?** É esperado. A StorageClass padrão do `kind`
   (`standard`) usa `WaitForFirstConsumer`: o volume só é provisionado quando
   o primeiro Pod monta o PVC. Assim que o Deployment sobe, ele passa para
-  `Bound`. Você não precisa instalar nenhum provisioner — o `kind` já vem
-  com o `local-path-provisioner` embutido.
+  `Bound`. Você não precisa instalar nenhum provisioner, porque o `kind` já
+  vem com o `local-path-provisioner` embutido.
 
 - **Pod em `ImagePullBackOff`?** A imagem do lab (`andreffcastro/k8s-todolist:1.0.0`)
-  é pública no Docker Hub — se esse erro aparecer com ela, verifique sua conexão.
-  Para **imagens locais** (builds próprios), o `kind` não enxerga o registry local;
-  carregue a imagem manualmente no cluster:
+  é pública no Docker Hub, então se esse erro aparecer com ela, verifique sua
+  conexão. Para **imagens locais** (builds próprios), o `kind` não enxerga o
+  registry local, então você precisa carregar a imagem manualmente no cluster:
 
   ```bash
   docker build -t minha-imagem:tag .
@@ -552,7 +566,7 @@ Vamos adicionar a entrada abaixo ao `/etc/hosts`:
 A aplicação fica acessível em: [http://todolist-grupo-05.local](http://todolist-grupo-05.local)
 
 > **No WSL:** se você abre o site no navegador do **Windows**, quem vale é o
-> hosts do Windows (`C:\Windows\System32\drivers\etc\hosts`) — não o `/etc/hosts`
+> hosts do Windows (`C:\Windows\System32\drivers\etc\hosts`), e não o `/etc/hosts`
 > do WSL. O hosts do Windows é um arquivo comum e persiste normalmente. Já o
 > `/etc/hosts` *de dentro do WSL* é regenerado a cada boot (apagando edições
 > manuais), a menos que você desative isso com `generateHosts = false` no
