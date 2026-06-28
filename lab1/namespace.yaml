@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: todolist-grupo-05
+  labels:
+    app: todolist
+    environment: dev
+    team: grupo-05
+  annotations:
+    description: "Namespace da aplicação TodoList - Grupo 05"
+    contact: "wjgcl@cesar.school"
+    source-repository: "https://github.com/weynne/cesar-school-pos-devops-k8s"
