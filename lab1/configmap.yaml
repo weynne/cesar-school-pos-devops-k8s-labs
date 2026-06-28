@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: todolist-config
+  namespace: todolist-grupo-05
+  labels:
+    app: todolist
+    component: config
+  annotations:
+    description: "Configurações não sensíveis do TodoList (nome, porta e cor do tema)"
+data:
+  APP_COLOR: purple
+  APP_NAME: TodoList - Grupo 05
+  APP_PORT: "5000"
