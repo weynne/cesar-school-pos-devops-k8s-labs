@@ -120,13 +120,24 @@ expõe as portas 80/443 no host e marca o node com `ingress-ready=true`
 kind create cluster --name k8s-labs --config kind-config.yaml
 
 # 2) Instalar o Ingress-NGINX Controller (provider: kind):
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.1/deploy/static/provider/kind/deploy.yaml
 
 # 3) Aguardar o Ingress Controller ficar pronto (evita erro de webhook):
 kubectl wait --namespace ingress-nginx \
   --for=condition=ready pod \
   --selector=app.kubernetes.io/component=controller \
   --timeout=90s
+
+# 4) Instalar o metrics-server (não usado no Lab 1; necessário para HPA e kubectl top):
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+# 5) No kind o kubelet usa certificado auto-assinado; desabilita a verificação TLS
+#    (só para ambiente de laboratório, nunca em produção):
+kubectl patch deployment metrics-server -n kube-system --type='json' \
+  -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+
+# 6) Aguardar o metrics-server reiniciar (evita "Metrics API not available" no kubectl top):
+kubectl rollout status deployment metrics-server -n kube-system --timeout=90s
 ```
 
 ## Lab 1: Workloads + Acesso + Persistência
@@ -473,7 +484,7 @@ kubectl apply -f lab1/ingress.yaml
 <details>
 <summary><b>8. CronJob</b> — limpeza automática a cada 5 minutos</summary>
 
-A cada 5 minutos (`*/5 * * * *`), um Job com a imagem `curlimages/curl:8`
+A cada 5 minutos (`*/5 * * * *`), um Job com a imagem `curlimages/curl:8.21.0`
 faz `POST /cleanup` para limpar itens concluídos do banco.
 O token vem diretamente do Secret.
 
@@ -501,7 +512,7 @@ flowchart LR
     API["🔵 API Server"]
     etcd[("📦 etcd")]
     Cron["⏰ CronJob:<br/>todolist-cleanup"]
-    Job["🛠️ Job:<br/>curlimages/curl:8"]
+    Job["🛠️ Job:<br/>curlimages/curl:8.21.0"]
     Sec["🔐 Secret:<br/>todolist-secret"]
     SVC["🔄 Service:<br/>todolist"]
 
@@ -514,7 +525,7 @@ flowchart LR
 ```bash
 # Ponto de partida: gera o esqueleto com imagem + agendamento
 kubectl create cronjob todolist-cleanup \
-  --image=curlimages/curl:8 --schedule="*/5 * * * *" \
+  --image=curlimages/curl:8.21.0 --schedule="*/5 * * * *" \
   -n todolist-grupo-05 --dry-run=client -o yaml > lab1/cronjob.yaml
 
 # Edite o arquivo para adicionar o command do curl (POST /cleanup) e o
@@ -591,7 +602,8 @@ Tópicos fora do escopo deste lab, mas úteis quando for para um ambiente real:
   kubectl create secret generic todolist-secret \
     --from-literal=ADMIN_USER=admin \
     --from-literal=ADMIN_PASSWORD='sua-senha' \
-    --from-literal=SESSION_KEY='algum-valor' -n todolist-grupo-05
+    --from-literal=SESSION_KEY='algum-valor' \
+    --from-literal=CLEANUP_TOKEN='algum-token' -n todolist-grupo-05
   ```
 
   Para gerenciar segredos versionáveis de forma segura, veja
