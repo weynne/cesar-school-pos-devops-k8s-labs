@@ -222,10 +222,10 @@ Isola todos os recursos do lab. Todo manifest abaixo deve declarar `namespace: t
 
 ```mermaid
 flowchart LR
-    Apply["kubectl apply<br/>-f namespace.yaml"]
-    API["API Server"]
-    etcd[("etcd")]
-    NS["Namespace:<br/>todolist-grupo-05"]
+    Apply["💻 kubectl apply<br/>-f namespace.yaml"]
+    API["🔵 API Server"]
+    etcd[("📦 etcd")]
+    NS["📁 Namespace:<br/>todolist-grupo-05"]
 
     Apply --> API --> etcd --> NS
 ```
@@ -249,11 +249,11 @@ injetadas nos Pods via `envFrom`.
 
 ```mermaid
 flowchart LR
-    Apply["kubectl apply<br/>-f configmap.yaml"]
-    API["API Server"]
-    etcd[("etcd")]
-    CM["ConfigMap:<br/>todolist-config"]
-    Pods["Pods"]
+    Apply["💻 kubectl apply<br/>-f configmap.yaml"]
+    API["🔵 API Server"]
+    etcd[("📦 etcd")]
+    CM["⚙️ ConfigMap:<br/>todolist-config"]
+    Pods["✅ Pods"]
 
     Apply --> API --> etcd --> CM -->|envFrom: configMapRef| Pods
 ```
@@ -282,12 +282,12 @@ e o acesso pode ser restringido via RBAC.
 
 ```mermaid
 flowchart LR
-    Apply["kubectl apply<br/>-f secret.yaml"]
-    API["API Server"]
-    etcd[("etcd")]
-    Sec["Secret:<br/>todolist-secret"]
-    Pods["Pods"]
-    Cron["CronJob:<br/>todolist-cleanup"]
+    Apply["💻 kubectl apply<br/>-f secret.yaml"]
+    API["🔵 API Server"]
+    etcd[("📦 etcd")]
+    Sec["🔐 Secret:<br/>todolist-secret"]
+    Pods["✅ Pods"]
+    Cron["⏰ CronJob:<br/>todolist-cleanup"]
 
     Apply --> API --> etcd --> Sec
     Sec -->|envFrom: secretRef| Pods
@@ -322,12 +322,12 @@ O Deployment monta o volume em `/data`, onde fica o banco `todos.db`.
 
 ```mermaid
 flowchart LR
-    Apply["kubectl apply<br/>-f pvc.yaml"]
-    API["API Server"]
-    etcd[("etcd")]
-    PVC["PVC:<br/>todolist-pvc"]
-    PV["PersistentVolume"]
-    Pods["Pods"]
+    Apply["💻 kubectl apply<br/>-f pvc.yaml"]
+    API["🔵 API Server"]
+    etcd[("📦 etcd")]
+    PVC["💾 PVC:<br/>todolist-pvc"]
+    PV["💽 PersistentVolume"]
+    Pods["✅ Pods"]
 
     Apply --> API --> etcd --> PVC -->|bound| PV
     PVC -->|volumeMount /data| Pods
@@ -356,13 +356,13 @@ O ReplicaSet cria e mantém os Pods até ficarem prontos:
 
 ```mermaid
 flowchart LR
-    Apply["kubectl apply<br/>-f deployment.yaml"]
-    API["API Server"]
-    etcd[("etcd")]
-    DC["Deployment Controller"]
-    RS["ReplicaSet"]
-    Pods["Pods"]
-    CM["ConfigMap:<br/>todolist-config"] & Sec["Secret:<br/>todolist-secret"] & PVC["PVC:<br/>todolist-pvc"]
+    Apply["💻 kubectl apply<br/>-f deployment.yaml"]
+    API["🔵 API Server"]
+    etcd[("📦 etcd")]
+    DC["🎛️ Deployment Controller"]
+    RS["🔁 ReplicaSet"]
+    Pods["✅ Pods"]
+    CM["⚙️ ConfigMap:<br/>todolist-config"] & Sec["🔐 Secret:<br/>todolist-secret"] & PVC["💾 PVC:<br/>todolist-pvc"]
 
     Apply --> API --> etcd --> DC --> RS --> Pods
     CM & Sec -->|envFrom| Pods
@@ -391,12 +391,12 @@ O `selector: app: todolist` balanceia entre as réplicas.
 
 ```mermaid
 flowchart LR
-    Apply["kubectl apply<br/>-f service.yaml"]
-    API["API Server"]
-    etcd[("etcd")]
-    SVC["Service:<br/>todolist"]
-    Pod1["Pod 1"]
-    Pod2["Pod 2"]
+    Apply["💻 kubectl apply<br/>-f service.yaml"]
+    API["🔵 API Server"]
+    etcd[("📦 etcd")]
+    SVC["🔄 Service:<br/>todolist"]
+    Pod1["✅ Pod 1"]
+    Pod2["✅ Pod 2"]
 
     Apply --> API --> etcd --> SVC
     SVC -->|balanceia| Pod1 & Pod2
@@ -421,13 +421,13 @@ Requer o Ingress-NGINX Controller instalado.
 
 ```mermaid
 flowchart LR
-    Apply["kubectl apply<br/>-f ingress.yaml"]
-    API["API Server"]
-    etcd[("etcd")]
-    Ing["Ingress:<br/>todolist-ingress"]
-    Browser(["Navegador"])
-    IC["Ingress-NGINX Controller"]
-    SVC["Service:<br/>todolist"]
+    Apply["💻 kubectl apply<br/>-f ingress.yaml"]
+    API["🔵 API Server"]
+    etcd[("📦 etcd")]
+    Ing["🌐 Ingress:<br/>todolist-ingress"]
+    Browser(["🖥️ Navegador"])
+    IC["🔀 Ingress-NGINX Controller"]
+    SVC["🔄 Service:<br/>todolist"]
 
     Apply --> API --> etcd --> Ing
     Browser -->|HTTP| IC -->|lê as regras do| Ing
@@ -455,13 +455,13 @@ O token vem diretamente do Secret.
 
 ```mermaid
 flowchart LR
-    Apply["kubectl apply<br/>-f cronjob.yaml"]
-    API["API Server"]
-    etcd[("etcd")]
-    Cron["CronJob:<br/>todolist-cleanup"]
-    Job["Job:<br/>curlimages/curl:8"]
-    Sec["Secret:<br/>todolist-secret"]
-    SVC["Service:<br/>todolist"]
+    Apply["💻 kubectl apply<br/>-f cronjob.yaml"]
+    API["🔵 API Server"]
+    etcd[("📦 etcd")]
+    Cron["⏰ CronJob:<br/>todolist-cleanup"]
+    Job["🛠️ Job:<br/>curlimages/curl:8"]
+    Sec["🔐 Secret:<br/>todolist-secret"]
+    SVC["🔄 Service:<br/>todolist"]
 
     Apply --> API --> etcd --> Cron
     Cron -->|cria a cada 5 min| Job
@@ -594,24 +594,26 @@ A aplicação fica acessível em: [http://todolist-grupo-05.local](http://todoli
 
 ```mermaid
 flowchart TD
-    Browser(["Navegador"])
-    Hosts["/etc/hosts"]
-    IC["Ingress-NGINX Controller<br/><i>ns: ingress-nginx</i>"]
+    Browser(["🖥️ Navegador"])
+    Hosts["📄 /etc/hosts"]
+    IC["🔀 Ingress-NGINX Controller<br/><i>ns: ingress-nginx</i>"]
 
     subgraph NS["Namespace: todolist-grupo-05"]
-        Ing["Ingress:<br/>todolist-ingress"]
-        SVC["Service:<br/>todolist"]
-        Deploy["Deployment:<br/>todolist"]
-        Pods["Pods (2 réplicas)"]
-        CM["ConfigMap:<br/>todolist-config"]
-        Sec["Secret:<br/>todolist-secret"]
-        PVC["PVC:<br/>todolist-pvc"]
-        Cron["CronJob:<br/>todolist-cleanup"]
+        Ing["🌐 Ingress:<br/>todolist-ingress"]
+        SVC["🔄 Service:<br/>todolist"]
+        Deploy["🚀 Deployment:<br/>todolist"]
+        Pods["✅ Pods (2 réplicas)"]
+        CM["⚙️ ConfigMap:<br/>todolist-config"]
+        Sec["🔐 Secret:<br/>todolist-secret"]
+        PVC["💾 PVC:<br/>todolist-pvc"]
+        Cron["⏰ CronJob:<br/>todolist-cleanup"]
     end
 
     Browser --> Hosts --> IC
     IC -->|lê as regras do| Ing
-    IC -->|roteia para| SVC --> Deploy --> Pods
+    IC -->|roteia para| SVC
+    SVC -->|balanceia para| Pods
+    Deploy -->|gerencia e mantém| Pods
     CM -->|envFrom| Pods
     Sec -->|envFrom| Pods
     PVC -->|volumeMount /data| Pods
