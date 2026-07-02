@@ -1,0 +1,17 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+  namespace: todolist-grupo-05
+  labels:
+    app: todolist
+    component: rbac
+  annotations:
+    description: "Permite leitura (get/list) de pods no namespace do TodoList"
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get"]
