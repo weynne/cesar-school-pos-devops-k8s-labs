@@ -1,0 +1,42 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: todolist-hpa
+  namespace: todolist-grupo-05
+  labels:
+    app: todolist
+    component: autoscaling
+  annotations:
+    description: "Escala automaticamente o TodoList conforme o uso de CPU"
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: todolist
+  minReplicas: 1
+  maxReplicas: 4
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0       # age imediatamente ao detectar CPU acima do alvo
+      policies:
+      - type: Percent
+        value: 100                         # pode dobrar o número de pods por ciclo
+        periodSeconds: 15
+      - type: Pods
+        value: 2                           # ou adicionar no máximo 2 pods por ciclo
+        periodSeconds: 15
+      selectPolicy: Max                    # usa a política que permite adicionar mais pods
+    scaleDown:
+      stabilizationWindowSeconds: 60      # CPU deve ficar baixa por 60s antes de remover pods
+      policies:
+      - type: Percent
+        value: 25                          # remove no máximo 25% dos pods por ciclo
+        periodSeconds: 60
+      selectPolicy: Max                    # usa a política que permite remover mais pods
